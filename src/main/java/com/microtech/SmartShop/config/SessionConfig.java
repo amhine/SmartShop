@@ -1,4 +1,4 @@
 package com.microtech.SmartShop.config;
 
-public class AppConfig {
+public class SessionConfig {
 }
