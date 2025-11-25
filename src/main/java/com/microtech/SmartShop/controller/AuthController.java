@@ -18,10 +18,11 @@ import java.util.Optional;
 public class AuthController {
     @Autowired
     private UserRepository userRepository;
-    private  UserMapper userMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @PostMapping("/login")
-    public String login(@RequestBody UserDTO loginDTO, HttpSession session){
+    public UserDTO login(@RequestBody UserDTO loginDTO, HttpSession session){
         Optional<User> useropt = userRepository.findByUsername(loginDTO.getUsername());
         if(useropt.isEmpty()){
             throw new RuntimeException("Utilisateur non trouvé");
@@ -31,8 +32,10 @@ public class AuthController {
             throw new RuntimeException("Password incorrect");
         }
         session.setAttribute("user", user);
-        return "Connexion réussie pour l'utilisateur " + user.getUsername();
+        return userMapper.toDto(user);
     }
+
+
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
