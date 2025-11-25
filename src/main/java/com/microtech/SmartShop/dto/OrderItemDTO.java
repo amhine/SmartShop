@@ -1,4 +1,4 @@
 package com.microtech.SmartShop.dto;
 
-public class CreateOrderRequest {
+public class OrderItemDTO {
 }

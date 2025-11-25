@@ -1,13 +1,14 @@
 package com.microtech.SmartShop.entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.microtech.SmartShop.entity.enums.CustomerTier;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -20,5 +21,9 @@ public class Client extends User {
     private String email;
     @Column(nullable = false)
     private String nom;
+    @Enumerated(EnumType.STRING)
+    private CustomerTier customer;
 
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Commande> commandes;
 }
