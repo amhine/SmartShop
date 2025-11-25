@@ -1,4 +1,7 @@
 package com.microtech.SmartShop.entity.enums;
 
-public class PaymentStatus {
+public enum PaymentStatus {
+    En_attente,
+    Encaisse,
+    Rejete
 }

@@ -1,4 +1,7 @@
 package com.microtech.SmartShop.entity.enums;
 
-public class PaymentType {
+public enum PaymentType {
+    Especes,
+    Cheque,
+    Virement
 }
