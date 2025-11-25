@@ -7,6 +7,7 @@ import com.microtech.SmartShop.repository.UserRepository;
 import com.microtech.SmartShop.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,6 +21,9 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     @Override
     public UserDTO login(UserDTO loginDTO , HttpSession session){
         Optional<User> userOpt = userRepository.findByUsername(loginDTO.getUsername());
@@ -27,7 +31,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("utilisateur non trouve");
         }
         User user = userOpt.get();
-        if (!user.getPassword().equals(loginDTO.getPassword())) {
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mot de passe incorrect");
         }
         session.setAttribute("user", user);
