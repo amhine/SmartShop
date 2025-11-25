@@ -3,14 +3,12 @@ package com.microtech.SmartShop.entity;
 import com.microtech.SmartShop.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)

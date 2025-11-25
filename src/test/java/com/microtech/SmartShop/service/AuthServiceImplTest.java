@@ -3,6 +3,7 @@ package com.microtech.SmartShop.service;
 import com.microtech.SmartShop.dto.UserDTO;
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.User;
+import com.microtech.SmartShop.exception.AuthException;
 import com.microtech.SmartShop.mapper.UserMapper;
 import com.microtech.SmartShop.repository.UserRepository;
 import com.microtech.SmartShop.service.impl.AuthServiceImpl;
@@ -80,13 +81,13 @@ public class AuthServiceImplTest {
 
         when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        AuthException exception = assertThrows(AuthException.class, () -> {
             authService.login(loginDTO, session);
         });
 
         assertEquals("utilisateur non trouve", exception.getMessage());
 
-        verify(session, never()).setAttribute(anyString(), any());
+        verify(session, never()).setAttribute(any(), any());
     }
 
     @Test
@@ -102,12 +103,13 @@ public class AuthServiceImplTest {
         when(userRepository.findByUsername("nihad")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongpass", user.getPassword())).thenReturn(false);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        AuthException exception = assertThrows(AuthException.class, () -> {
             authService.login(loginDTO, session);
         });
 
         assertEquals("Mot de passe incorrect", exception.getMessage());
 
-        verify(session, never()).setAttribute(anyString(), any());
+        verify(session, never()).setAttribute(any(), any());
     }
+
 }

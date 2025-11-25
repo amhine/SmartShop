@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(name="admins")
 @EqualsAndHashCode(callSuper=true)
 public class Admin extends User{
