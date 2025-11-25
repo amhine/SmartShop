@@ -24,6 +24,6 @@ public class Client extends User {
     @Enumerated(EnumType.STRING)
     private CustomerTier customer;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Commande> commandes;
+//    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Commande> commandes;
 }
