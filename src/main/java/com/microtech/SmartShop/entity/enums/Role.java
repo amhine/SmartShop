@@ -1,4 +1,6 @@
 package com.microtech.SmartShop.entity.enums;
 
-public class Role {
+public enum Role {
+    Admin,
+    Client
 }

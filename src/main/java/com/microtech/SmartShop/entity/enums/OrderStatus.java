@@ -1,4 +1,8 @@
 package com.microtech.SmartShop.entity.enums;
 
-public class OrderStatus {
+public enum OrderStatus {
+    Pending,
+    Confirmed,
+    Canceles,
+    Rejeted
 }
