@@ -1,9 +1,11 @@
 package com.microtech.SmartShop.service.impl;
 
+import com.microtech.SmartShop.dto.ClientDTO;
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.enums.CustomerTier;
 import com.microtech.SmartShop.entity.enums.Role;
 import com.microtech.SmartShop.exception.EmailAlreadyUsedException;
+import com.microtech.SmartShop.mapper.ClientMapper;
 import com.microtech.SmartShop.repository.ClientRepository;
 import com.microtech.SmartShop.repository.UserRepository;
 import com.microtech.SmartShop.service.AuthService;
@@ -21,6 +23,9 @@ public class ClientServiceImpl implements ClientService {
     private UserRepository userRepository;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private ClientMapper clientMapper;
+
 
     @Override
     public Client createClient(Client client){
@@ -38,5 +43,13 @@ public class ClientServiceImpl implements ClientService {
         return clientRepository.save(client);
 
     }
+
+    @Override
+    public ClientDTO findById(Long id) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client avec id " + id + " introuvable"));
+        return clientMapper.toDto(client);
+    }
+
 
 }
