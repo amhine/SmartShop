@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -17,6 +16,9 @@ import java.util.List;
 @Entity
 @Table(name = "clients")
 public class Client extends User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
