@@ -32,23 +32,18 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client createClient(Client client) {
-        // Vérifie si le username existe déjà
         if (userRepository.findByUsername(client.getUsername()).isPresent()) {
             throw new RuntimeException("Username déjà utilisé !");
         }
 
-        // Vérifie si l'email existe déjà
         if (clientRepository.existsByEmail(client.getEmail())) {
             throw new EmailAlreadyUsedException("Email déjà utilisé !"); // <-- corrigé
         }
 
-        // Encode le mot de passe
         client.setPassword(passwordEncoder.encode(client.getPassword()));
 
-        // Définit le rôle
         client.setRole(Role.Client);
 
-        // Définit le niveau client si non fourni
         if (client.getCustomer() == null) {
             client.setCustomer(CustomerTier.Basic);
         }

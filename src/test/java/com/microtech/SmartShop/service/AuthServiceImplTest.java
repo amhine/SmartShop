@@ -66,7 +66,6 @@ class AuthServiceImplTest {
         assertNotNull(result);
         assertEquals("nihad", result.getUsername());
 
-        // Correction : stocker l'ID ou l'objet selon ton implémentation réelle
         verify(session, times(1)).setAttribute("USER_ID", 1L);
     }
 
