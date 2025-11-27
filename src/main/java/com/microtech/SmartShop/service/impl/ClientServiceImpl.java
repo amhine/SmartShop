@@ -3,6 +3,7 @@ package com.microtech.SmartShop.service.impl;
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.enums.CustomerTier;
 import com.microtech.SmartShop.entity.enums.Role;
+import com.microtech.SmartShop.exception.EmailAlreadyUsedException;
 import com.microtech.SmartShop.repository.ClientRepository;
 import com.microtech.SmartShop.repository.UserRepository;
 import com.microtech.SmartShop.service.AuthService;
@@ -24,7 +25,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client createClient(Client client){
         if (userRepository.findByUsername(client.getUsername()).isPresent()) {
-            throw new RuntimeException("Username déjà utilisé !");
+            throw new EmailAlreadyUsedException("Username déjà utilisé !");
         }
         if (clientRepository.existsByEmail(client.getEmail())) {
             throw new RuntimeException("Email déjà utilisé !");
