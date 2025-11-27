@@ -1,6 +1,7 @@
 package com.microtech.SmartShop.service.impl;
 
 import com.microtech.SmartShop.entity.Client;
+import com.microtech.SmartShop.entity.enums.CustomerTier;
 import com.microtech.SmartShop.entity.enums.Role;
 import com.microtech.SmartShop.repository.ClientRepository;
 import com.microtech.SmartShop.repository.UserRepository;
@@ -30,6 +31,9 @@ public class ClientServiceImpl implements ClientService {
         }
         client.setPassword(passwordEncoder.encode(client.getPassword()));
         client.setRole(Role.Client);
+        if (client.getCustomer() == null) {
+            client.setCustomer(CustomerTier.Basic);
+        }
         return clientRepository.save(client);
 
     }
