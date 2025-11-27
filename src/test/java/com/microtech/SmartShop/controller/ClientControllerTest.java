@@ -37,7 +37,6 @@ class ClientControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Utiliser les champs de la classe, pas de variables locales
         adminUser = new Client();
         adminUser.setId(1L);
         adminUser.setRole(Role.Admin);
@@ -56,7 +55,6 @@ class ClientControllerTest {
     }
 
 
-    // CREATE - Admin only
     @Test
     void testCreateClient_AsAdmin_Success() {
         when(session.getAttribute("user")).thenReturn(adminUser);
@@ -82,7 +80,6 @@ class ClientControllerTest {
         verify(clientService, never()).createClient(any(Client.class));
     }
 
-    // GET - Client can only access own data
     @Test
     void testGetClientById_AsAdmin_Success() {
         when(session.getAttribute("user")).thenReturn(adminUser);
@@ -99,7 +96,6 @@ class ClientControllerTest {
         when(session.getAttribute("user")).thenReturn(clientUser);
         when(clientService.findById(2L)).thenReturn(testClientDTO);
 
-        // clientUser.id = 2L matches requested id
         clientUser.setId(2L);
 
         ClientDTO result = clientController.getClientById(2L, session);
@@ -111,8 +107,7 @@ class ClientControllerTest {
     @Test
     void testGetClientById_AsClientOther_ThrowsAccessDenied() {
         when(session.getAttribute("user")).thenReturn(clientUser);
-        clientUser.setId(3L); // Different id
-
+        clientUser.setId(3L);
         AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> clientController.getClientById(2L, session)
@@ -121,7 +116,6 @@ class ClientControllerTest {
         assertEquals("Vous ne pouvez consulter que vos propres données", exception.getMessage());
     }
 
-    // DELETE - Admin only
     @Test
     void testDeleteClient_AsAdmin_Success() {
         when(session.getAttribute("user")).thenReturn(adminUser);
