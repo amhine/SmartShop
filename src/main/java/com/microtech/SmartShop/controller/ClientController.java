@@ -2,6 +2,7 @@ package com.microtech.SmartShop.controller;
 
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.service.ClientService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +16,7 @@ public class ClientController {
     private ClientService clientService;
 
     @PostMapping("/create")
-    public Client create(@RequestBody Client client) {
+    public Client create(@Valid @RequestBody Client client) {
         return clientService.createClient(client);
     }
 }
