@@ -16,12 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-public class ClientServiceTest {
+class ClientServiceTest {
+
     @Mock
     private ClientRepository clientRepository;
 
@@ -38,6 +37,7 @@ public class ClientServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
     @Test
     void testCreateClient_Success() {
         Client client = new Client();
@@ -95,9 +95,4 @@ public class ClientServiceTest {
 
         assertEquals("encodedPass", saved.getPassword());
     }
-
-
-
-
-
 }

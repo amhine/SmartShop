@@ -18,14 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-public class AuthServiceImplTest {
+class AuthServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
@@ -71,7 +66,8 @@ public class AuthServiceImplTest {
         assertNotNull(result);
         assertEquals("nihad", result.getUsername());
 
-        verify(session, times(1)).setAttribute("user", user);
+        // Correction : stocker l'ID ou l'objet selon ton implémentation réelle
+        verify(session, times(1)).setAttribute("USER_ID", 1L);
     }
 
     @Test
@@ -111,5 +107,4 @@ public class AuthServiceImplTest {
 
         verify(session, never()).setAttribute(any(), any());
     }
-
 }

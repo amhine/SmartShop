@@ -40,7 +40,7 @@ public class Client extends User {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<Commande> commandes;
 
-
+    private boolean deleted = false;
 
     public LocalDateTime getFirstOrderDate() {
         return commandes != null && !commandes.isEmpty() ?
