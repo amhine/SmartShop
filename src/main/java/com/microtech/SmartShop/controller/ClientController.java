@@ -61,4 +61,16 @@ public class ClientController {
         List<CommandeDTO> commandes = clientService.getCommandes(id);
         return ResponseEntity.ok(commandes);
     }
+    @PutMapping("/{id}")
+    public ClientDTO updateClient(@PathVariable Long id,
+                                  @Valid @RequestBody ClientDTO clientDTO,
+                                  HttpSession session) {
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null) {
+            throw new AccessDeniedException("Non authentifié");
+        }
+
+        return clientService.updateClient(id, clientDTO, currentUser);
+    }
+
 }
