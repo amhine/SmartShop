@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             throw new AuthException("Mot de passe incorrect");
         }
-        session.setAttribute("USER_ID", user.getId());
+        session.setAttribute("user", user);
         return userMapper.toDto(user);
     }
 

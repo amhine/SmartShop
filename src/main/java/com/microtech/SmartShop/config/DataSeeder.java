@@ -20,16 +20,15 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.findByUsername("admin").isEmpty()) {
-            User admin = new Admin();
-            admin.setUsername("nihad");
-            admin.setPassword(passwordEncoder.encode("nihad123"));
-            admin.setRole(Role.Admin);
+
+            Admin admin = new Admin();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+
             userRepository.save(admin);
 
-            System.out.println("Admin par défaut créé : username=admin, password=admin123");
-        } else {
-            System.out.println("Admin déjà existant, seed ignoré");
+            System.out.println("✔ Admin seedé !");
         }
-
     }
+
 }

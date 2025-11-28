@@ -1,7 +1,7 @@
 package com.microtech.SmartShop.entity;
 
-
 import com.microtech.SmartShop.entity.enums.CustomerTier;
+import com.microtech.SmartShop.entity.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,19 +11,16 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
-@EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "clients")
+@PrimaryKeyJoinColumn(name = "id")
 public class Client extends User {
-
 
     @NotBlank(message = "Le nom est obligatoire")
     @Size(min = 2, max = 50, message = "Le nom doit contenir entre 2 et 50 caractères")
@@ -38,12 +35,29 @@ public class Client extends User {
     private CustomerTier customer;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-   private List<Commande> commandes;
+    private List<Commande> commandes;
 
-    private boolean deleted = false;
+    @Column(nullable = false)
+    private Boolean deleted;
+
+
+    public Client() {
+        super();
+        this.deleted = false;
+    }
+
+    public Client(String username, String password, Role role, String nom, String email, CustomerTier customer) {
+        super.setUsername(username);
+        super.setPassword(password);
+        super.setRole(role);
+        this.nom = nom;
+        this.email = email;
+        this.customer = customer;
+        this.deleted = false;
+    }
 
     public LocalDateTime getFirstOrderDate() {
-        return commandes != null && !commandes.isEmpty() ?
+        return (commandes != null && !commandes.isEmpty()) ?
                 commandes.stream()
                         .map(Commande::getDateCreation)
                         .min(LocalDateTime::compareTo)
@@ -52,7 +66,7 @@ public class Client extends User {
     }
 
     public LocalDateTime getLastOrderDate() {
-        return commandes != null && !commandes.isEmpty() ?
+        return (commandes != null && !commandes.isEmpty()) ?
                 commandes.stream()
                         .map(Commande::getDateCreation)
                         .max(LocalDateTime::compareTo)
@@ -69,5 +83,4 @@ public class Client extends User {
                 .mapToDouble(Commande::getTotalTTC)
                 .sum() : 0.0;
     }
-
 }
