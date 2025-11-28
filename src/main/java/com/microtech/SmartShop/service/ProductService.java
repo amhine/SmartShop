@@ -1,8 +1,8 @@
 package com.microtech.SmartShop.service;
 
 import com.microtech.SmartShop.dto.ProductDTO;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 
 public interface ProductService {
 
@@ -14,5 +14,5 @@ public interface ProductService {
 
     ProductDTO getProductById(Long id);
 
-    List<ProductDTO> getAllProducts();
+    Page<ProductDTO> getAllProducts(int page, int size, String search);
 }
