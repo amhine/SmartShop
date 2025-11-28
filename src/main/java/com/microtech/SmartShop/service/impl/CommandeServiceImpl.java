@@ -36,6 +36,22 @@ public class CommandeServiceImpl implements CommandeService {
 
         clientRepository.save(client);
     }
+    @Override
+    public Commande confirmCommande(Long commandeId) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new RuntimeException("Commande non trouvée"));
 
+        if (!commande.isFullyPaid()) {
+            throw new RuntimeException("Commande non totalement payée");
+        }
+        commande.setStatut(OrderStatus.Confirmed);
+        commandeRepository.save(commande);
+        Client client = commande.getClient();
+        updateStats(client);
+
+        return commande;
     }
+
+
+}
 
