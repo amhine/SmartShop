@@ -6,6 +6,9 @@ import com.microtech.SmartShop.mapper.ProductMapper;
 import com.microtech.SmartShop.repository.ProductRepository;
 import com.microtech.SmartShop.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
-        product.setDeleted(true); // soft delete
+        product.setDeleted(true);
         productRepository.save(product);
     }
 
@@ -52,10 +55,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .filter(p -> !p.isDeleted())
-                .map(ProductMapper::toDto)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getAllProducts(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage;
+
+        if (search != null && !search.isEmpty()) {
+            productPage = productRepository.findByDeletedFalseAndNomContainingIgnoreCase(search, pageable);
+        } else {
+            productPage = productRepository.findByDeletedFalse(pageable);
+        }
+
+        return productPage.map(ProductMapper::toDto);
     }
+
 }
