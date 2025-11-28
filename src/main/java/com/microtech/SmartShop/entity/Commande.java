@@ -44,4 +44,8 @@ public class Commande {
 
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL)
     private List<Payment> payments = new ArrayList<>();
+
+    public boolean isFullyPaid() {
+        return montantRestant <= 0.0;
+    }
 }

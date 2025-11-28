@@ -1,4 +1,4 @@
 package com.microtech.SmartShop.controller;
 
-public class OrderController {
+public class CommandeController {
 }
