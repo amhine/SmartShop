@@ -15,5 +15,5 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
 
     @Query("SELECT COALESCE(SUM(c.totalTTC), 0) FROM Commande c WHERE c.client = :client AND c.statut = :statut")
     double sumTotalTTCByClientAndStatut(@Param("client") Client client, @Param("statut") OrderStatus statut);
-
+    List<Commande>  findByClient(Client client);
 }

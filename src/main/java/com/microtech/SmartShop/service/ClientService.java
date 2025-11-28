@@ -1,8 +1,10 @@
 package com.microtech.SmartShop.service;
 
 import com.microtech.SmartShop.dto.ClientDTO;
+import com.microtech.SmartShop.dto.CommandeDTO;
 import com.microtech.SmartShop.entity.Client;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ClientService {
@@ -11,4 +13,5 @@ public interface ClientService {
     ClientDTO findById(Long id);
 
     void deleteClient(Long id);
+    List<CommandeDTO> getCommandes(Long clientId);
 }

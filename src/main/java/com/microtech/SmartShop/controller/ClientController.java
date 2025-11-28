@@ -1,6 +1,7 @@
 package com.microtech.SmartShop.controller;
 
 import com.microtech.SmartShop.dto.ClientDTO;
+import com.microtech.SmartShop.dto.CommandeDTO;
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.User;
 import com.microtech.SmartShop.entity.enums.Role;
@@ -11,6 +12,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -51,5 +54,11 @@ public class ClientController {
 
         clientService.deleteClient(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/commande")
+    public ResponseEntity<List<CommandeDTO>> getClientCommandes(@PathVariable Long id) {
+        List<CommandeDTO> commandes = clientService.getCommandes(id);
+        return ResponseEntity.ok(commandes);
     }
 }
