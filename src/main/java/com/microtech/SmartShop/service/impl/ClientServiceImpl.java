@@ -63,9 +63,10 @@ public class ClientServiceImpl implements ClientService {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException("Client avec id " + id + " introuvable"));
 
-        if (client.isDeleted()) {
+        if (Boolean.TRUE.equals(client.getDeleted())) {
             throw new ClientAlreadyDeletedException("Client déjà supprimé");
         }
+
 
         client.setDeleted(true);
         clientRepository.save(client);
