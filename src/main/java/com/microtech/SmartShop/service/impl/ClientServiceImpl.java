@@ -4,8 +4,10 @@ import com.microtech.SmartShop.dto.ClientDTO;
 import com.microtech.SmartShop.dto.CommandeDTO;
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.Commande;
+import com.microtech.SmartShop.entity.User;
 import com.microtech.SmartShop.entity.enums.CustomerTier;
 import com.microtech.SmartShop.entity.enums.Role;
+import com.microtech.SmartShop.exception.AccessDeniedException;
 import com.microtech.SmartShop.exception.ClientAlreadyDeletedException;
 import com.microtech.SmartShop.exception.ClientNotFoundException;
 import com.microtech.SmartShop.exception.EmailAlreadyUsedException;
@@ -90,4 +92,20 @@ public class ClientServiceImpl implements ClientService {
                 .map(CommandeMapper::toDTO)
                 .toList();
     }
+    @Override
+    public ClientDTO updateClient(Long id, ClientDTO clientDTO, User currentUser) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client avec id " + id + " introuvable"));
+        if (currentUser.getRole() == Role.Client && !currentUser.getId().equals(id)) {
+            throw new AccessDeniedException("Vous ne pouvez modifier que vos propres données");
+        }
+        if (!client.getEmail().equals(clientDTO.getEmail()) && clientRepository.existsByEmail(clientDTO.getEmail())) {
+            throw new EmailAlreadyUsedException("Email déjà utilisé !");
+        }
+        client.setNom(clientDTO.getNom());
+        client.setEmail(clientDTO.getEmail());
+        clientRepository.save(client);
+        return clientMapper.toDto(client);
+    }
+
 }
