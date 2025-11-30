@@ -1,5 +1,6 @@
 package com.microtech.SmartShop.service.impl;
 
+import com.microtech.SmartShop.dto.CommandeCreateDto;
 import com.microtech.SmartShop.dto.CommandeDTO;
 import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.Commande;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class CommandeServiceImpl implements CommandeService {
@@ -29,13 +31,15 @@ public class CommandeServiceImpl implements CommandeService {
     @Override
     public void updateStats(Client client) {
         long totalOrders = commandeRepository.countByClientAndStatut(client, OrderStatus.Confirmed);
-        double totalSpent = commandeRepository.sumTotalTTCByClientAndStatut(client, OrderStatus.Confirmed);
+        BigDecimal totalSpent = BigDecimal.valueOf(
+                commandeRepository.sumTotalTTCByClientAndStatut(client, OrderStatus.Confirmed)
+        );
 
-        if (totalOrders >= 20 || totalSpent >= 15000) {
+        if (totalOrders >= 20 || totalSpent.compareTo(BigDecimal.valueOf(15000)) >= 0) {
             client.setCustomer(CustomerTier.Platinum);
-        } else if (totalOrders >= 10 || totalSpent >= 5000) {
+        } else if (totalOrders >= 10 || totalSpent.compareTo(BigDecimal.valueOf(5000)) >= 0) {
             client.setCustomer(CustomerTier.Gold);
-        } else if (totalOrders >= 3 || totalSpent >= 1000) {
+        } else if (totalOrders >= 3 || totalSpent.compareTo(BigDecimal.valueOf(1000)) >= 0) {
             client.setCustomer(CustomerTier.Silver);
         } else {
             client.setCustomer(CustomerTier.Basic);
@@ -66,7 +70,7 @@ public class CommandeServiceImpl implements CommandeService {
             throw new RuntimeException("La commande doit être en statut PENDING");
         }
 
-        if (commande.getMontantRestant() > 0) {
+        if (commande.getMontantRestant().compareTo(BigDecimal.ZERO) > 0) {
             throw new RuntimeException("Commande non totalement payée");
         }
 
@@ -89,36 +93,119 @@ public class CommandeServiceImpl implements CommandeService {
     }
 
     private void applyDiscount(Commande commande) {
-        Client client = commande.getClient();
-        CustomerTier tier = client.getCustomer();
 
-        BigDecimal sousTotal = BigDecimal.valueOf(commande.getSousTotalHT());
+        BigDecimal sousTotal = commande.getSousTotalHT();
 
         if (sousTotal.compareTo(BigDecimal.valueOf(500)) < 0) {
-            commande.setMontantRemise(0);
-            commande.setMontantHTApresRemise(commande.getSousTotalHT());
-            commande.setMontantTVA(commande.getMontantHTApresRemise() * 0.2);
-            commande.setTotalTTC(commande.getMontantHTApresRemise() + commande.getMontantTVA());
+            commande.setMontantRemise(BigDecimal.ZERO);
+            commande.setMontantHTApresRemise(sousTotal);
+            BigDecimal tva = sousTotal.multiply(BigDecimal.valueOf(0.20));
+            commande.setMontantTVA(tva);
+            commande.setTotalTTC(sousTotal.add(tva));
             return;
         }
 
-        BigDecimal discountRate;
-        switch (tier) {
-            case Platinum -> discountRate = BigDecimal.valueOf(0.20);
-            case Gold -> discountRate = BigDecimal.valueOf(0.15);
-            case Silver -> discountRate = BigDecimal.valueOf(0.10);
-            default -> discountRate = BigDecimal.ZERO;
-        }
+        CustomerTier tier = commande.getClient().getCustomer();
 
-        BigDecimal montantRemise = sousTotal.multiply(discountRate);
-        BigDecimal montantHTApresRemise = sousTotal.subtract(montantRemise);
-        BigDecimal montantTVA = montantHTApresRemise.multiply(BigDecimal.valueOf(0.2));
-        BigDecimal totalTTC = montantHTApresRemise.add(montantTVA);
+        BigDecimal discountRate = switch (tier) {
+            case Platinum -> BigDecimal.valueOf(0.20);
+            case Gold -> BigDecimal.valueOf(0.15);
+            case Silver -> BigDecimal.valueOf(0.10);
+            default -> BigDecimal.ZERO;
+        };
 
-        commande.setMontantRemise(montantRemise.doubleValue());
-        commande.setMontantHTApresRemise(montantHTApresRemise.doubleValue());
-        commande.setMontantTVA(montantTVA.doubleValue());
-        commande.setTotalTTC(totalTTC.doubleValue());
+        BigDecimal remise = sousTotal.multiply(discountRate);
+        BigDecimal htApresRemise = sousTotal.subtract(remise);
+        BigDecimal tva = htApresRemise.multiply(BigDecimal.valueOf(0.20));
+        BigDecimal totalTTC = htApresRemise.add(tva);
+
+        commande.setMontantRemise(remise);
+        commande.setMontantHTApresRemise(htApresRemise);
+        commande.setMontantTVA(tva);
+        commande.setTotalTTC(totalTTC);
     }
 
+    @Override
+    @Transactional
+    public CommandeDTO createCommande(CommandeCreateDto dto) {
+
+        Client client = clientRepository.findById(dto.getClientId())
+                .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+
+        Commande commande = new Commande();
+        commande.setClient(client);
+        commande.setStatut(OrderStatus.Pending);
+
+        BigDecimal sousTotalHT = BigDecimal.ZERO;
+        for (var itemDto : dto.getItems()) {
+
+            Product product = productRepository.findById(itemDto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+
+            if (product.getStock() < itemDto.getQuantite()) {
+                throw new RuntimeException("Stock insuffisant pour : " + product.getNom());
+            }
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setCommande(commande);
+            orderItem.setProduct(product);
+            orderItem.setQuantite(itemDto.getQuantite());
+            orderItem.setPrixUnitaire(product.getPrixUnitaire());
+
+            BigDecimal totalLigne = product.getPrixUnitaire().multiply(
+                    BigDecimal.valueOf(itemDto.getQuantite())
+            );
+
+            orderItem.setTotalLigne(totalLigne);
+
+            commande.getItems().add(orderItem);
+
+            sousTotalHT = sousTotalHT.add(totalLigne);
+        }
+
+        commande.setSousTotalHT(sousTotalHT);
+
+        BigDecimal montantRemisePromo = BigDecimal.ZERO;
+        if (dto.getCodePromo() != null && !dto.getCodePromo().isBlank()) {
+
+            if (!dto.getCodePromo().matches("PROMO-[A-Z0-9]{4}")) {
+                throw new RuntimeException("Code promo invalide");
+            }
+
+            montantRemisePromo = sousTotalHT.multiply(BigDecimal.valueOf(0.10));
+            commande.setCodePromo(dto.getCodePromo());
+        }
+
+        BigDecimal tauxRemiseFidelite = switch (client.getCustomer()) {
+            case Platinum -> BigDecimal.valueOf(0.20);
+            case Gold -> BigDecimal.valueOf(0.15);
+            case Silver -> BigDecimal.valueOf(0.10);
+            default -> BigDecimal.ZERO;
+        };
+
+        BigDecimal montantRemiseFidelite = sousTotalHT.multiply(tauxRemiseFidelite);
+        BigDecimal montantRemise = montantRemiseFidelite.add(montantRemisePromo);
+
+        commande.setMontantRemise(montantRemise);
+
+        BigDecimal montantHTApresRemise = sousTotalHT.subtract(montantRemise);
+        commande.setMontantHTApresRemise(montantHTApresRemise);
+
+        BigDecimal montantTVA = montantHTApresRemise.multiply(BigDecimal.valueOf(0.20));
+        commande.setMontantTVA(montantTVA);
+
+        BigDecimal totalTTC = montantHTApresRemise.add(montantTVA);
+        commande.setTotalTTC(totalTTC);
+
+        commande.setMontantRestant(totalTTC);
+
+        for (OrderItem item : commande.getItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() - item.getQuantite());
+            productRepository.save(product);
+        }
+
+        Commande saved = commandeRepository.save(commande);
+        return commandeMapper.toDto(saved);
+    }
 }
