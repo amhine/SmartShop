@@ -14,4 +14,5 @@ public interface ClientService {
      ClientDTO updateClient(Long id, ClientCreateDto dto);
      void deleteClient(Long id);
      List<CommandeDTO> getCommandes(Long clientId);
+    void recalculateClientTier(Long clientId);
     }

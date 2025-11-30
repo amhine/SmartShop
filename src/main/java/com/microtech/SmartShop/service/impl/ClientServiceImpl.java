@@ -61,7 +61,6 @@ public class ClientServiceImpl implements ClientService {
     private void calculateTier(Client client) {
         int orders = client.getTotalOrders();
         BigDecimal spent = client.getTotalSpent();
-
         if (orders >= 20 || spent.compareTo(BigDecimal.valueOf(15000)) >= 0) {
             client.setCustomer(CustomerTier.Platinum);
         } else if (orders >= 10 || spent.compareTo(BigDecimal.valueOf(5000)) >= 0) {
@@ -72,6 +71,15 @@ public class ClientServiceImpl implements ClientService {
             client.setCustomer(CustomerTier.Basic);
         }
     }
+
+    @Override
+    public void recalculateClientTier(Long clientId) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+        calculateTier(client);
+        clientRepository.save(client);
+    }
+
 
     @Override
     public void deleteClient(Long id) {
