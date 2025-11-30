@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,22 +26,23 @@ public class Commande {
     private LocalDateTime dateCreation = LocalDateTime.now();
 
     @Column(nullable = false)
-    private double sousTotalHT;
+    private BigDecimal sousTotalHT = BigDecimal.ZERO;
 
     @Column(nullable = false)
-    private double montantRemise;
+    private BigDecimal montantRemise;
 
     @Column(nullable = false)
-    private double montantHTApresRemise;
+    private BigDecimal montantHTApresRemise;
 
     @Column(nullable = false)
-    private double montantTVA;
+    private BigDecimal montantTVA;
 
     @Column(nullable = false)
-    private double totalTTC;
+    private BigDecimal totalTTC;
 
     @Column(nullable = false)
-    private double montantRestant;
+    private BigDecimal montantRestant;
+
 
     @Pattern(regexp = "PROMO-[A-Z0-9]{4}")
     private String codePromo;
