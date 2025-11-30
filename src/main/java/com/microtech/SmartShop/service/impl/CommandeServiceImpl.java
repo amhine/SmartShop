@@ -60,7 +60,6 @@ public class CommandeServiceImpl implements CommandeService {
     @Override
     @Transactional
     public CommandeDTO confirmCommande(Long id) {
-
         Commande commande = getCommandeEntity(id);
 
         if (commande.getStatut() != OrderStatus.Pending) {
@@ -70,6 +69,7 @@ public class CommandeServiceImpl implements CommandeService {
         if (commande.getMontantRestant() > 0) {
             throw new RuntimeException("Commande non totalement payée");
         }
+
         for (OrderItem item : commande.getItems()) {
             Product product = item.getProduct();
             if (product.getStock() < item.getQuantite()) {
@@ -80,11 +80,11 @@ public class CommandeServiceImpl implements CommandeService {
             product.setStock(product.getStock() - item.getQuantite());
             productRepository.save(product);
         }
+
         applyDiscount(commande);
         commande.setStatut(OrderStatus.Confirmed);
         commandeRepository.save(commande);
         updateStats(commande.getClient());
-
         return commandeMapper.toDto(commande);
     }
 
@@ -93,8 +93,16 @@ public class CommandeServiceImpl implements CommandeService {
         CustomerTier tier = client.getCustomer();
 
         BigDecimal sousTotal = BigDecimal.valueOf(commande.getSousTotalHT());
-        BigDecimal discountRate;
 
+        if (sousTotal.compareTo(BigDecimal.valueOf(500)) < 0) {
+            commande.setMontantRemise(0);
+            commande.setMontantHTApresRemise(commande.getSousTotalHT());
+            commande.setMontantTVA(commande.getMontantHTApresRemise() * 0.2);
+            commande.setTotalTTC(commande.getMontantHTApresRemise() + commande.getMontantTVA());
+            return;
+        }
+
+        BigDecimal discountRate;
         switch (tier) {
             case Platinum -> discountRate = BigDecimal.valueOf(0.20);
             case Gold -> discountRate = BigDecimal.valueOf(0.15);
@@ -112,4 +120,5 @@ public class CommandeServiceImpl implements CommandeService {
         commande.setMontantTVA(montantTVA.doubleValue());
         commande.setTotalTTC(totalTTC.doubleValue());
     }
+
 }
