@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "commandes")
 public class Commande {
 
@@ -20,22 +21,35 @@ public class Commande {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 
+    @Column(nullable = false)
     private double sousTotalHT;
+
+    @Column(nullable = false)
     private double montantRemise;
+
+    @Column(nullable = false)
     private double montantHTApresRemise;
+
+    @Column(nullable = false)
     private double montantTVA;
+
+    @Column(nullable = false)
     private double totalTTC;
+
+    @Column(nullable = false)
     private double montantRestant;
 
     @Pattern(regexp = "PROMO-[A-Z0-9]{4}")
     private String codePromo;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus statut = OrderStatus.Pending;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
@@ -45,7 +59,5 @@ public class Commande {
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL)
     private List<Payment> payments = new ArrayList<>();
 
-    public boolean isFullyPaid() {
-        return montantRestant <= 0.0;
-    }
+
 }

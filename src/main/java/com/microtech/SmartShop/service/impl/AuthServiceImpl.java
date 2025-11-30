@@ -1,47 +1,37 @@
 package com.microtech.SmartShop.service.impl;
 
-import com.microtech.SmartShop.dto.UserDTO;
+import com.microtech.SmartShop.dto.LoginRequest;
 import com.microtech.SmartShop.entity.User;
 import com.microtech.SmartShop.exception.AuthException;
-import com.microtech.SmartShop.mapper.UserMapper;
 import com.microtech.SmartShop.repository.UserRepository;
 import com.microtech.SmartShop.service.AuthService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     @Override
-    public UserDTO login(UserDTO loginDTO , HttpSession session){
-        Optional<User> userOpt = userRepository.findByUsername(loginDTO.getUsername());
-        if(userOpt.isEmpty()){
-            throw new AuthException("utilisateur non trouve");
-        }
-        User user = userOpt.get();
-        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+    public User login(LoginRequest request, HttpSession session) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new AuthException("Utilisateur non trouvé"));
+
+        if (!request.getPassword().equals(user.getPassword())) {
             throw new AuthException("Mot de passe incorrect");
         }
+
         session.setAttribute("user", user);
-        return userMapper.toDto(user);
+        return user;
     }
+
 
     @Override
     public void logout(HttpSession session) {
         session.invalidate();
     }
-
 }

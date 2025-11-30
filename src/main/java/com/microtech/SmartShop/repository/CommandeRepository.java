@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 @Repository
 public interface CommandeRepository extends JpaRepository<Commande, Long> {
+    List<Commande> findByClientId(Long clientId);
     List<Commande> findByClientAndStatut(Client client, OrderStatus statut);
     long countByClientAndStatut(Client client, OrderStatus statut);
 

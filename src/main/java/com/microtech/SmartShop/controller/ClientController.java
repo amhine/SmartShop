@@ -1,38 +1,44 @@
 package com.microtech.SmartShop.controller;
 
+import com.microtech.SmartShop.dto.ClientCreateDto;
 import com.microtech.SmartShop.dto.ClientDTO;
 import com.microtech.SmartShop.dto.CommandeDTO;
-import com.microtech.SmartShop.entity.Client;
 import com.microtech.SmartShop.entity.User;
 import com.microtech.SmartShop.entity.enums.Role;
 import com.microtech.SmartShop.exception.AccessDeniedException;
+import com.microtech.SmartShop.mapper.CommandeMapper;
+import com.microtech.SmartShop.repository.CommandeRepository;
 import com.microtech.SmartShop.service.ClientService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/clients")
+@RequiredArgsConstructor
+
 public class ClientController {
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
+    private final CommandeRepository commandeRepository;
+    private final CommandeMapper commandeMapper;
 
     @PostMapping("/create")
-    public Client create(@Valid @RequestBody Client client, HttpSession session) {
+    public ResponseEntity<ClientDTO> createClient(@Valid @RequestBody ClientCreateDto dto ,HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null || currentUser.getRole() != Role.Admin) {
             throw new AccessDeniedException("Vous n'avez pas la permission de créer un client");
         }
-        return clientService.createClient(client);
+        return ResponseEntity.ok(clientService.createClient(dto));
     }
 
     @GetMapping("/{id}")
-    public ClientDTO getClientById(@PathVariable Long id, HttpSession session){
+    public ResponseEntity<ClientDTO> getClientById(@PathVariable Long id, HttpSession session){
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
             throw new AccessDeniedException("Non authentifié");
@@ -42,7 +48,7 @@ public class ClientController {
             throw new AccessDeniedException("Vous ne pouvez consulter que vos propres données");
         }
 
-        return clientService.findById(id);
+        return ResponseEntity.ok(clientService.getClient(id));
     }
 
     @DeleteMapping("/{id}")
@@ -51,26 +57,24 @@ public class ClientController {
         if (currentUser == null || currentUser.getRole() != Role.Admin) {
             throw new AccessDeniedException("Vous n'avez pas la permission de supprimer un client");
         }
-
         clientService.deleteClient(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/commande")
-    public ResponseEntity<List<CommandeDTO>> getClientCommandes(@PathVariable Long id) {
-        List<CommandeDTO> commandes = clientService.getCommandes(id);
-        return ResponseEntity.ok(commandes);
+    public ResponseEntity<List<CommandeDTO>> getClientOrders(@PathVariable Long id) {
+        return ResponseEntity.ok(commandeRepository.findByClientId(id).stream()
+                .map(commandeMapper::toDto)
+                .collect(Collectors.toList()));
     }
     @PutMapping("/{id}")
-    public ClientDTO updateClient(@PathVariable Long id,
-                                  @Valid @RequestBody ClientDTO clientDTO,
-                                  HttpSession session) {
+    public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id, @Valid @RequestBody ClientCreateDto dto, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
             throw new AccessDeniedException("Non authentifié");
         }
 
-        return clientService.updateClient(id, clientDTO, currentUser);
+        return ResponseEntity.ok(clientService.updateClient(id, dto));
     }
 
 }
