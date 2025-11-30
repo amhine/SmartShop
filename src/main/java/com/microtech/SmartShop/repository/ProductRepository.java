@@ -7,6 +7,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
     Page<Product> findByDeletedFalse(Pageable pageable);
-    Page<Product> findByDeletedFalseAndNomContainingIgnoreCase(String nom, Pageable pageable);
 
 }

@@ -1,20 +1,20 @@
 package com.microtech.SmartShop.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id; // <-- Corrigé ici
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "products")
 public class Product {
 
@@ -22,14 +22,17 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @Column(nullable = false)
     private String nom;
 
-    @Min(0)
-    private double prixUnitaire;
+    @Column(nullable = false)
+    private BigDecimal prixUnitaire;
 
-    @Min(0)
-    private int stock;
+    @Column(nullable = false)
+    private Integer stock;
 
+    @Column(nullable = false)
     private boolean deleted = false;
+
+
 }

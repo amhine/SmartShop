@@ -1,43 +1,22 @@
 package com.microtech.SmartShop.mapper;
 
+import com.microtech.SmartShop.dto.ClientCreateDto;
 import com.microtech.SmartShop.dto.ClientDTO;
 import com.microtech.SmartShop.entity.Client;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class ClientMapper {
+@Mapper(componentModel = "spring")
+public interface ClientMapper {
+    ClientDTO toDto(Client client);
 
-    public ClientDTO toDto(Client client){
-        if(client == null) return null;
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "customer", constant = "Basic")
+    @Mapping(target = "totalOrders", constant = "0")
+    @Mapping(target = "totalSpent", constant = "0")
+    @Mapping(target = "firstOrderDate", ignore = true)
+    @Mapping(target = "lastOrderDate", ignore = true)
+    @Mapping(target = "role", constant = "Client")
 
-        ClientDTO dto = new ClientDTO();
-        dto.setId(client.getId());
-        dto.setNom(client.getNom());
-        dto.setEmail(client.getEmail());
-        dto.setNiveauFidelite(client.getCustomer());
-
-        dto.setTotalOrders(client.getTotalOrders());
-        dto.setTotalSpent(client.getTotalSpent());
-
-        dto.setFirstOrderDate(
-                client.getFirstOrderDate() != null ? client.getFirstOrderDate().toLocalDate() : null
-        );
-        dto.setLastOrderDate(
-                client.getLastOrderDate() != null ? client.getLastOrderDate().toLocalDate() : null
-        );
-
-        return dto;
-    }
-
-    public Client toEntity(ClientDTO dto){
-        if(dto == null) return null;
-
-        Client client = new Client();
-        client.setId(dto.getId());
-        client.setNom(dto.getNom());
-        client.setEmail(dto.getEmail());
-        client.setCustomer(dto.getNiveauFidelite());
-
-        return client;
-    }
+    Client toEntity(ClientCreateDto dto);
 }

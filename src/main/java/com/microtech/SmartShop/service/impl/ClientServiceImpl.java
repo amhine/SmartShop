@@ -1,111 +1,102 @@
 package com.microtech.SmartShop.service.impl;
 
+import com.microtech.SmartShop.dto.ClientCreateDto;
 import com.microtech.SmartShop.dto.ClientDTO;
 import com.microtech.SmartShop.dto.CommandeDTO;
 import com.microtech.SmartShop.entity.Client;
-import com.microtech.SmartShop.entity.Commande;
-import com.microtech.SmartShop.entity.User;
 import com.microtech.SmartShop.entity.enums.CustomerTier;
-import com.microtech.SmartShop.entity.enums.Role;
-import com.microtech.SmartShop.exception.AccessDeniedException;
 import com.microtech.SmartShop.exception.ClientAlreadyDeletedException;
 import com.microtech.SmartShop.exception.ClientNotFoundException;
-import com.microtech.SmartShop.exception.EmailAlreadyUsedException;
 import com.microtech.SmartShop.mapper.ClientMapper;
 import com.microtech.SmartShop.mapper.CommandeMapper;
 import com.microtech.SmartShop.repository.ClientRepository;
 import com.microtech.SmartShop.repository.CommandeRepository;
-import com.microtech.SmartShop.repository.UserRepository;
 import com.microtech.SmartShop.service.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import lombok.RequiredArgsConstructor;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
 
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ClientMapper clientMapper;
-
-    @Autowired
-    private CommandeRepository commandeRepository;
+    private final ClientRepository clientRepository;
+    private final CommandeRepository commandeRepository;
+    private final ClientMapper clientMapper;
+    private final CommandeMapper commandeMapper;
 
     @Override
-    public Client createClient(Client client) {
-        if (userRepository.findByUsername(client.getUsername()).isPresent()) {
-            throw new RuntimeException("Username déjà utilisé !");
-        }
-
-        if (clientRepository.existsByEmail(client.getEmail())) {
-            throw new EmailAlreadyUsedException("Email déjà utilisé !"); // <-- corrigé
-        }
-
-        client.setPassword(passwordEncoder.encode(client.getPassword()));
-
-        client.setRole(Role.Client);
-
-        if (client.getCustomer() == null) {
-            client.setCustomer(CustomerTier.Basic);
-        }
-
-        return clientRepository.save(client);
+    public ClientDTO createClient(ClientCreateDto dto) {
+        Client client = clientMapper.toEntity(dto);
+        String hashedPassword = BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt());
+        client.setPassword(hashedPassword);
+        return clientMapper.toDto(clientRepository.save(client));
     }
 
     @Override
-    public ClientDTO findById(Long id) {
+    public ClientDTO getClient(Long id) {
+        return clientRepository.findById(id)
+                .map(clientMapper::toDto)
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+    }
+
+    @Override
+    public Client getClientEntity(Long id) {
+        return clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+    }
+
+    @Override
+    public ClientDTO updateClient(Long id, ClientCreateDto dto) {
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client avec id " + id + " introuvable"));
-        return clientMapper.toDto(client);
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+        client.setNom(dto.getNom());
+        client.setEmail(dto.getEmail());
+        return clientMapper.toDto(clientRepository.save(client));
+    }
+
+    private void calculateTier(Client client) {
+        int orders = client.getTotalOrders();
+        BigDecimal spent = client.getTotalSpent();
+
+        if (orders >= 20 || spent.compareTo(BigDecimal.valueOf(15000)) >= 0) {
+            client.setCustomer(CustomerTier.Platinum);
+        } else if (orders >= 10 || spent.compareTo(BigDecimal.valueOf(5000)) >= 0) {
+            client.setCustomer(CustomerTier.Gold);
+        } else if (orders >= 3 || spent.compareTo(BigDecimal.valueOf(1000)) >= 0) {
+            client.setCustomer(CustomerTier.Silver);
+        } else {
+            client.setCustomer(CustomerTier.Basic);
+        }
     }
 
     @Override
     public void deleteClient(Long id) {
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException("Client avec id " + id + " introuvable"));
+                .orElseThrow(() -> new ClientNotFoundException("Client introuvable"));
 
         if (Boolean.TRUE.equals(client.getDeleted())) {
             throw new ClientAlreadyDeletedException("Client déjà supprimé");
         }
 
-
         client.setDeleted(true);
         clientRepository.save(client);
     }
+
+
+    @Override
     public List<CommandeDTO> getCommandes(Long clientId) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new RuntimeException("Client non trouvé"));
 
-        List<Commande> commandes = commandeRepository.findByClient(client);
-
-        return commandes.stream()
-                .map(CommandeMapper::toDTO)
+        return commandeRepository.findByClient(client)
+                .stream()
+                .map(commandeMapper::toDto)
                 .toList();
     }
-    @Override
-    public ClientDTO updateClient(Long id, ClientDTO clientDTO, User currentUser) {
-        Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Client avec id " + id + " introuvable"));
-        if (currentUser.getRole() == Role.Client && !currentUser.getId().equals(id)) {
-            throw new AccessDeniedException("Vous ne pouvez modifier que vos propres données");
-        }
-        if (!client.getEmail().equals(clientDTO.getEmail()) && clientRepository.existsByEmail(clientDTO.getEmail())) {
-            throw new EmailAlreadyUsedException("Email déjà utilisé !");
-        }
-        client.setNom(clientDTO.getNom());
-        client.setEmail(clientDTO.getEmail());
-        clientRepository.save(client);
-        return clientMapper.toDto(client);
-    }
+
 
 }

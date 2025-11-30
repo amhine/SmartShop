@@ -1,10 +1,12 @@
 package com.microtech.SmartShop.service.impl;
 
+import com.microtech.SmartShop.dto.ProductCreateDto;
 import com.microtech.SmartShop.dto.ProductDTO;
 import com.microtech.SmartShop.entity.Product;
 import com.microtech.SmartShop.mapper.ProductMapper;
 import com.microtech.SmartShop.repository.ProductRepository;
 import com.microtech.SmartShop.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,57 +17,46 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+
+    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
     @Override
-    public ProductDTO createProduct(ProductDTO productDTO) {
-        Product product = ProductMapper.toEntity(productDTO);
-        Product saved = productRepository.save(product);
-        return ProductMapper.toDto(saved);
+    public ProductDTO createProduct(ProductCreateDto dto) {
+        Product product = productMapper.toEntity(dto);
+        return productMapper.toDto(productRepository.save(product));
     }
-
     @Override
-    public ProductDTO updateProduct(Long id, ProductDTO productDTO) {
+    public ProductDTO updateProduct(Long id, ProductCreateDto dto) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
-        ProductMapper.updateEntity(product, productDTO);
-        Product updated = productRepository.save(product);
-        return ProductMapper.toDto(updated);
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setNom(dto.getNom());
+        product.setPrixUnitaire(dto.getPrix());
+        product.setStock(dto.getStock());
+        return productMapper.toDto(productRepository.save(product));
     }
 
     @Override
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
         product.setDeleted(true);
         productRepository.save(product);
     }
 
     @Override
-    public ProductDTO getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
-        if (product.isDeleted()) {
-            throw new RuntimeException("Produit supprimé");
-        }
-        return ProductMapper.toDto(product);
+    public Product getProductEntity(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     @Override
-    public Page<ProductDTO> getAllProducts(int page, int size, String search) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage;
-
-        if (search != null && !search.isEmpty()) {
-            productPage = productRepository.findByDeletedFalseAndNomContainingIgnoreCase(search, pageable);
-        } else {
-            productPage = productRepository.findByDeletedFalse(pageable);
-        }
-
-        return productPage.map(ProductMapper::toDto);
+    public Page<ProductDTO> getAllProducts(Pageable pageable) {
+        return productRepository.findByDeletedFalse(pageable)
+                .map(productMapper::toDto);
     }
 
 }
