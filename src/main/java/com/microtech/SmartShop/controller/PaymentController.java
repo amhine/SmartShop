@@ -22,4 +22,11 @@ public class PaymentController {
         PaymentDTO payment = paymentService.addPayment(commandeId, dto);
         return ResponseEntity.ok(payment);
     }
+
+    @PutMapping("/{paymentId}/validate")
+    public ResponseEntity<PaymentDTO> validatePayment(@PathVariable Long paymentId) {
+        PaymentDTO payment = paymentService.validatePayment(paymentId);
+        return ResponseEntity.ok(payment);
+    }
+
 }
