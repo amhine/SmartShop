@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,11 +49,13 @@ public class CommandeServiceImpl implements CommandeService {
         clientRepository.save(client);
     }
 
+
     @Override
-    public CommandeDTO getCommande(Long id) {
-        return commandeRepository.findById(id)
+    public List<CommandeDTO> getCommandes() {
+        return commandeRepository.findAll()
+                .stream()
                 .map(commandeMapper::toDto)
-                .orElseThrow(() -> new RuntimeException("Commande non trouvée"));
+                .toList();
     }
 
     @Override
@@ -60,6 +63,13 @@ public class CommandeServiceImpl implements CommandeService {
         return commandeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvée"));
     }
+
+    @Override
+    public CommandeDTO getCommande(Long id) {
+        return commandeMapper.toDto(getCommandeEntity(id));
+    }
+
+
 
     @Override
     @Transactional
@@ -233,5 +243,8 @@ public class CommandeServiceImpl implements CommandeService {
 
         return commandeMapper.toDto(saved);
     }
-
+    @Override
+    public void deleteCommande(Long id) {
+        commandeRepository.deleteById(id);
+    }
 }
