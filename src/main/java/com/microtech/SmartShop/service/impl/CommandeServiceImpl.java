@@ -208,4 +208,27 @@ public class CommandeServiceImpl implements CommandeService {
         Commande saved = commandeRepository.save(commande);
         return commandeMapper.toDto(saved);
     }
+
+    @Override
+    @Transactional
+    public CommandeDTO cancelCommande(Long id) {
+
+        Commande commande = getCommandeEntity(id);
+        if (commande.getStatut() != OrderStatus.Pending) {
+            throw new RuntimeException("Seules les commandes en statut PENDING peuvent être annulées.");
+        }
+
+        for (OrderItem item : commande.getItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantite());
+            productRepository.save(product);
+        }
+
+        commande.setStatut(OrderStatus.Canceles);
+
+        Commande saved = commandeRepository.save(commande);
+
+        return commandeMapper.toDto(saved);
+    }
+
 }
