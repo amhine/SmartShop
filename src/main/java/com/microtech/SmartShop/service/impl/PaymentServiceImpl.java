@@ -11,6 +11,7 @@ import com.microtech.SmartShop.mapper.PaymentMapper;
 import com.microtech.SmartShop.repository.CommandeRepository;
 import com.microtech.SmartShop.repository.PaymentRepository;
 import com.microtech.SmartShop.service.PaymentService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,5 +79,26 @@ public class PaymentServiceImpl implements PaymentService {
 
         return paymentMapper.toDto(payment);
     }
+
+    @Override
+    @Transactional
+    public PaymentDTO validatePayment(Long paymentId) {
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Paiement introuvable"));
+
+        if (payment.getStatut() == PaymentStatus.Encaisse) {
+            throw new RuntimeException("Paiement déjà validé");
+        }
+
+        if (payment.getCommande().getStatut() == OrderStatus.Canceles) {
+            throw new RuntimeException("Impossible de valider un paiement sur une commande annulée");
+        }
+        payment.setStatut(PaymentStatus.Encaisse);
+        paymentRepository.save(payment);
+
+        return paymentMapper.toDto(payment);
+    }
+
 
 }

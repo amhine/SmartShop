@@ -5,4 +5,5 @@ import com.microtech.SmartShop.dto.PaymentDTO;
 
 public interface PaymentService {
     PaymentDTO addPayment(Long commandeId, PaymentCreateDto dto);
+    PaymentDTO validatePayment(Long paymentId);
 }
