@@ -11,4 +11,5 @@ public interface CommandeService {
     Commande getCommandeEntity(Long id);
     CommandeDTO confirmCommande(Long id);
     CommandeDTO createCommande(CommandeCreateDto dto);
+    CommandeDTO cancelCommande(Long id);
 }
