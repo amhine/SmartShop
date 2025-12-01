@@ -19,22 +19,6 @@ Elle permet de gérer :
 ✔ Authentification via **HTTP Session** (pas de JWT, pas de Spring Security)
 ✔ Tests via Postman / Swagger
 
----
-
-# 📚 Table des matières
-
-1. [Fonctionnalités principales](#-fonctionnalités-principales)
-2. [Architecture du projet](#-architecture-du-projet)
-3. [Stack technique](#-stack-technique)
-4. [Modèle de données](#-modèle-de-données)
-5. [Installation & Exécution](#-installation--exécution)
-6. [Endpoints API](#-endpoints-api)
-7. [Gestion de la fidélité](#-gestion-de-la-fidélité)
-8. [Gestion des paiements](#-gestion-des-paiements)
-9. [Gestion des erreurs](#-gestion-des-erreurs)
-10. [Diagramme UML](#-diagramme-uml)
-
----
 
 # 🚀 Fonctionnalités principales
 
@@ -110,7 +94,35 @@ Moyens acceptés :
 # 🏗 Architecture du projet
 
 ```
-
+SmartShop/
+├── src/
+│   ├── main/
+│   │   ├── java/com/microtech/SmartShop/
+│   │   │   ├── config/                 # Configuration de l'application
+│   │   │   │
+│   │   │   ├── controller/             # Contrôleurs REST
+│   │   │   │
+│   │   │   ├── dto/                    # Objets de Transfert de Données
+│   │   │   │
+│   │   │   ├── entity/                 # Entités JPA
+│   │   │   ├── entity/enums/           # Énumérations
+│   │   │   │
+│   │   │   ├── exception/              # Gestion des exceptions
+│   │   │   │
+│   │   │   ├── repository/             # Interfaces JPA
+│   │   │   │
+│   │   │   ├── security/               # Configuration de sécurité
+│   │   │   │
+│   │   │   ├── service/                # Couche service
+│   │   │   │   ├── impl/               # Implémentations
+│   │   │   │
+│   │   │   └── SmartShopApplication.java  # Classe principale
+│   │   │
+│   │   └── resources/                  # Fichiers de ressources
+│   │
+│   └── test/                           # Tests unitaires et d'intégration
+│
+└── pom.xml                             # Fichier de configuration Maven
 ```
 
 ### Design Patterns utilisés
@@ -253,4 +265,5 @@ Gérée via `@ControllerAdvice`.
 
 # 📊 Diagramme UML
 
-📌 
+📌 <img width="1239" height="810" alt="Capture d’écran du 2025-12-01 21-53-04" src="https://github.com/user-attachments/assets/ee82d17c-ec61-4cf5-95ca-648975decd08" />
+
