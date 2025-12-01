@@ -64,23 +64,29 @@ public class CommandeServiceImpl implements CommandeService {
     @Override
     @Transactional
     public CommandeDTO confirmCommande(Long id) {
+
         Commande commande = getCommandeEntity(id);
 
         if (commande.getStatut() != OrderStatus.Pending) {
-            throw new RuntimeException("La commande doit être en statut PENDING");
+            throw new RuntimeException("La commande doit être en statut PENDING.");
         }
 
         if (commande.getMontantRestant().compareTo(BigDecimal.ZERO) > 0) {
-            throw new RuntimeException("Commande non totalement payée");
+            throw new RuntimeException("La commande n'est pas totalement payée.");
         }
 
         for (OrderItem item : commande.getItems()) {
+
             Product product = item.getProduct();
+
             if (product.getStock() < item.getQuantite()) {
                 commande.setStatut(OrderStatus.Rejeted);
                 commandeRepository.save(commande);
-                throw new RuntimeException("Stock insuffisant pour : " + product.getNom());
+                throw new RuntimeException(
+                        "Stock insuffisant pour le produit : " + product.getNom()
+                );
             }
+
             product.setStock(product.getStock() - item.getQuantite());
             productRepository.save(product);
         }
@@ -95,6 +101,8 @@ public class CommandeServiceImpl implements CommandeService {
     private void applyDiscount(Commande commande) {
 
         BigDecimal sousTotal = commande.getSousTotalHT();
+        Client client = commande.getClient();
+        CustomerTier tier = client.getCustomer();
 
         if (sousTotal.compareTo(BigDecimal.valueOf(500)) < 0) {
             commande.setMontantRemise(BigDecimal.ZERO);
@@ -104,24 +112,19 @@ public class CommandeServiceImpl implements CommandeService {
             commande.setTotalTTC(sousTotal.add(tva));
             return;
         }
-
-        CustomerTier tier = commande.getClient().getCustomer();
-
-        BigDecimal discountRate = switch (tier) {
+        BigDecimal rate = switch (tier) {
             case Platinum -> BigDecimal.valueOf(0.20);
             case Gold -> BigDecimal.valueOf(0.15);
             case Silver -> BigDecimal.valueOf(0.10);
             default -> BigDecimal.ZERO;
         };
-
-        BigDecimal remise = sousTotal.multiply(discountRate);
-        BigDecimal htApresRemise = sousTotal.subtract(remise);
-        BigDecimal tva = htApresRemise.multiply(BigDecimal.valueOf(0.20));
-        BigDecimal totalTTC = htApresRemise.add(tva);
-
-        commande.setMontantRemise(remise);
-        commande.setMontantHTApresRemise(htApresRemise);
-        commande.setMontantTVA(tva);
+        BigDecimal montantRemise = sousTotal.multiply(rate);
+        BigDecimal montantHTApresRemise = sousTotal.subtract(montantRemise);
+        BigDecimal montantTVA = montantHTApresRemise.multiply(BigDecimal.valueOf(0.20));
+        BigDecimal totalTTC = montantHTApresRemise.add(montantTVA);
+        commande.setMontantRemise(montantRemise);
+        commande.setMontantHTApresRemise(montantHTApresRemise);
+        commande.setMontantTVA(montantTVA);
         commande.setTotalTTC(totalTTC);
     }
 
