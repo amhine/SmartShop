@@ -17,13 +17,13 @@ public class CommandeController {
 
     private final CommandeService commandeService;
 
-//    @GetMapping
-//    public ResponseEntity<List<CommandeDTO>> getAllCommandes() {
-//        return ResponseEntity.ok(commandeService.getAllCommandes());
-//    }
+    @GetMapping
+    public ResponseEntity<List<CommandeDTO>> getAllCommandes() {
+        return ResponseEntity.ok(commandeService.getCommandes());
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CommandeDTO> getCommande(@PathVariable Long id) {
+    public ResponseEntity<CommandeDTO> getCommandeEntity(@PathVariable Long id) {
         return ResponseEntity.ok(commandeService.getCommande(id));
     }
 
@@ -42,17 +42,9 @@ public class CommandeController {
         return ResponseEntity.ok(commandeService.cancelCommande(id));
     }
 
-//    @PutMapping("/{id}/status")
-//    public ResponseEntity<CommandeDTO> updateStatus(
-//            @PathVariable Long id,
-//            @RequestParam OrderStatus statut
-//    ) {
-//        return ResponseEntity.ok(commandeService.updateStatus(id, statut));
-//    }
-
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteCommande(@PathVariable Long id) {
-//        commandeService.deleteCommande(id);
-//        return ResponseEntity.noContent().build();
-//    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCommande(@PathVariable Long id) {
+        commandeService.deleteCommande(id);
+        return ResponseEntity.noContent().build();
+    }
 }
