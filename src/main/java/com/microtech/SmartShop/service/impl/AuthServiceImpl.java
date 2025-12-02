@@ -8,6 +8,7 @@ import com.microtech.SmartShop.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +22,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AuthException("Utilisateur non trouvé"));
 
-        if (!request.getPassword().equals(user.getPassword())) {
+        if (!BCrypt.checkpw(request.getPassword(), user.getPassword())) {
             throw new AuthException("Mot de passe incorrect");
         }
 
